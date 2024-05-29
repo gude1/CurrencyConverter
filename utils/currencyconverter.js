@@ -4,19 +4,19 @@ export const markets = [
   { id: "usdtngn", base_unit: "usdt", quote_unit: "ngn" },
 ];
 
-const tickers = {
+export const tickers = {
   btcusdt: { ticker: { last: "62281.7" } },
   ethusdt: { ticker: { last: "3165.71" } },
   usdtngn: { ticker: { last: "1347.0" } },
 };
 
-export const convertCurrency = (amount, from, to) => {
+export const convertCurrency = (amount, from, to, tickers) => {
   try {
     if (!amount || !from || !to) {
       return "";
     }
 
-    let tickerobj = returnTicker(from, to);
+    let tickerobj = returnTicker(from, to, tickers);
 
     if (!tickerobj) {
       return "";
@@ -34,7 +34,7 @@ export const convertCurrency = (amount, from, to) => {
   }
 };
 
-const returnTicker = (from, to) => {
+const returnTicker = (from, to, tickers) => {
   let originalkey = `${from}${to}`;
   let invertedkey = `${to}${from}`;
 

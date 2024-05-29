@@ -1,18 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
-import { convertCurrency, markets } from "../utils/currencyconverter";
+import { convertCurrency, markets, tickers } from "../utils/currencyconverter";
 import ConverterBtn from "./components/ConverterBtn/ConverterBtn";
+import { MARKET_RES, TICKER_RES } from "./constants/quidax";
 
 function App() {
   const [count, setCount] = useState(0);
   const [fromCurrency, setFromCurrency] = useState("");
   const [toCurrency, setToCurrency] = useState("");
   const [amount, setAmount] = useState("");
-  const[inverted, setInverted] = useState(false);
+  const [quidaxMarkets, setQuidaxMarkets] = useState(markets);
+  const [quidaxTickers, setQuidaxTickers] = useState(tickers)
   const [result, setResult] = useState("");
 
+  useEffect(() =>{
+    fetchMarkets();
+    fetchTickers();
+  },[])
+
+  console.log("quidaxTickers",quidaxTickers)
   const onFromCurrencyChange = (event) => {
     setFromCurrency(event.target.value);
   };
@@ -31,10 +39,7 @@ function App() {
         return;
       }
 
-      // let fromcurrency =  inverted ? toCurrency: fromCurrency;
-      // let tocurrency= inverted ? fromCurrency: toCurrency;
-
-      let result = convertCurrency(amount, fromCurrency, toCurrency);
+      let result = convertCurrency(amount, fromCurrency, toCurrency, quidaxTickers);
       if (!result) {
         alert("Could not convert currency please try again");
         return;
@@ -55,13 +60,46 @@ function App() {
     setFromCurrency(tocurrency);
   }
 
+  const fetchMarkets =  async () => {
+    try {
+      const result = MARKET_RES;
+      if(result.status != "success"){
+       alert('Something went wrong, please retry');
+       return;
+      }
+
+      setQuidaxMarkets(result.data);
+      // console.log("fetchMarkets", result);
+    } catch (err) {
+      alert('Failed to fetch markets, please try again');
+      console.error("fetchMarkets err", err)
+    }
+  }
+
+  const fetchTickers =  async () => {
+    try {
+      const result = TICKER_RES;
+
+      if(result.status != "success"){
+        alert('Something went wrong, please retry');
+        return;
+       }
+ 
+       setQuidaxTickers(result.data);
+      // console.log("fetchTickers", result);
+    } catch (err) {
+      alert('Failed to fetch markets, please try again');
+      console.error("fetchTickers err", err)
+    }
+  }
+
   return (
     <>
       <div>
         <div className="">
           <select onChange={onFromCurrencyChange} value={fromCurrency}>
             <option>Please select currency A</option>
-            {markets.map((item) => {
+            {quidaxMarkets.map((item) => {
               return (
                 <>
                   <option key={item.id}>{item.base_unit}</option>
@@ -74,7 +112,7 @@ function App() {
           <button onClick={invertCurrency}>Invert</button>
           <select onChange={onToCurrencyChange} value={toCurrency}>
             <option>Please select currency B</option>
-            {markets.map((item) => {
+            {quidaxMarkets.map((item) => {
               return (
                 <>
                   <option key={item.id}>{item.base_unit}</option>
